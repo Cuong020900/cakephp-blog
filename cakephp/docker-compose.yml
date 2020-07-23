@@ -1,0 +1,58 @@
+version: "3"
+services:
+    nginx:
+        depends_on:
+            - php
+            - dockerhost
+            - redis.ghtk.vn
+        image: nginx:alpine
+        restart: always
+        volumes:
+            - ${CASH}
+            - ${ECOM}
+            - ${ASSET}
+            - ${NGINX}
+            - ${INVOICE}
+            - ${FE}
+            - ${BLOG}
+            - ./tmp/:/tmp/
+        ports:
+            - 80:80
+    php:
+        build: ./php
+        restart: always            
+        volumes:
+            - ${CASH}
+            - ${ECOM}
+            - ${ASSET}
+            - ${XDEBUG}
+            - ${INVOICE}
+            - ${GEARMAN}
+            - ${FE}
+            - ${BLOG}
+        expose:
+            - 9000
+        command: ["./start.sh"]
+    redis.ghtk.vn:
+        image: redis:alpine
+        restart: always
+        expose:
+            - 6379
+        command: redis-server --appendonly yes
+    dockerhost:
+        image: qoomon/docker-host
+        cap_add: ["NET_ADMIN", "NET_RAW"]
+        restart: always
+    mysql:
+        image: mysql:5.7
+        command: --default-authentication-plugin=mysql_native_password
+        volumes: 
+            - ../db/dbdata:/var/lib/mysql/
+        environment: 
+            MYSQL_ROOT_PASSWORD: "root"
+            MYSQL_DATABASE: "blog"
+            MYSQL_USER: "root"
+            MYSQL_PASSWORD: "root"
+        ports: 
+            - 3306:3306
+        restart: always
